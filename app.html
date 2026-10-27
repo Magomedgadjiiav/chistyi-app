@@ -441,7 +441,7 @@ DRIPS.forEach((d) => {
     dripList.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
     if (!wasOpen) card.classList.add("open");
   };
-  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(d.wa || `капельница «${d.name}» на дому`); };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(d.wa ? `Здравствуйте! Заказ: ${d.wa}.` : `Здравствуйте! Заказ с капельниц на дому: капельница «${d.name}».`)}`); };
   card.querySelector(".body .call").onclick = () => { haptic(); call(); };
   dripList.appendChild(card);
 });
