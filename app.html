@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Чистый</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --bg2: var(--tg-theme-secondary-bg-color, #f2f4f6);
+    --text: var(--tg-theme-text-color, #15191e);
+    --hint: var(--tg-theme-hint-color, #7a828c);
+    --accent: #1f6f5c;
+    --accent-soft: rgba(31,111,92,.12);
+    --wa: #25d366;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg2); color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 16px 16px calc(150px + env(safe-area-inset-bottom));
+  }
+  [hidden] { display: none !important; }
+  header { padding: 8px 4px 20px; }
+  .brand { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+  .brand span { color: var(--accent); }
+  .sub { color: var(--hint); font-size: 14px; margin-top: 4px; }
+  .lead { margin-top: 12px; font-size: 15px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .6px; color: var(--hint); margin: 22px 4px 8px; font-weight: 600; }
+  h2:first-child { margin-top: 0; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--bg); border-radius: var(--radius); overflow: hidden; }
+  .card button.head {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px;
+    background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  }
+  .icon { font-size: 24px; width: 40px; height: 40px; border-radius: 12px; background: var(--bg2);
+          display: grid; place-items: center; flex: none; }
+  .title { font-weight: 600; flex: 1; }
+  .chev { color: var(--hint); flex: none; transition: transform .2s; }
+  .card.open .chev { transform: rotate(90deg); }
+  .body { display: none; padding: 0 16px 16px; }
+  .card.open .body { display: block; }
+  .desc { color: var(--text); opacity: .85; font-size: 15px; }
+  .price { color: var(--hint); font-size: 13px; margin: 10px 0 14px; }
+  .row { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 13px 10px; border-radius: 12px; border: 0; font: 600 15px/1 inherit; font-family: inherit;
+    cursor: pointer; color: #fff;
+  }
+  .btn.wa { background: var(--wa); }
+  .btn.call { background: var(--accent); }
+  .note { color: var(--hint); font-size: 13px; text-align: center; margin: 20px 8px 0; }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  }
+  .bar .phone { text-align: center; color: var(--hint); font-size: 13px; margin-bottom: 8px; }
+
+  /* ---------- Экран услуги ---------- */
+  .back { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; color: var(--accent);
+          font: inherit; font-weight: 600; cursor: pointer; padding: 4px 0; margin-bottom: 12px; }
+  .hero { background: var(--bg); border-radius: var(--radius); padding: 20px 16px; }
+  .hero .icon { width: 52px; height: 52px; font-size: 30px; border-radius: 14px; margin-bottom: 12px; }
+  .hero h1 { font-size: 24px; letter-spacing: -0.3px; line-height: 1.2; }
+  .hero p { margin-top: 8px; font-size: 15px; opacity: .85; }
+  .plans { display: flex; flex-direction: column; gap: 10px; }
+  .plan { background: var(--bg); border-radius: var(--radius); padding: 14px 16px; border: 2px solid transparent;
+          display: flex; align-items: center; gap: 12px; cursor: pointer; text-align: left; color: inherit; font: inherit; width: 100%; }
+  .plan.sel { border-color: var(--accent); }
+  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--hint); flex: none; display: grid; place-items: center; }
+  .plan.sel .radio { border-color: var(--accent); }
+  .plan.sel .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  .plan .pt { flex: 1; min-width: 0; }
+  .plan .pn { font-weight: 600; }
+  .plan .pd { font-size: 13px; color: var(--hint); margin-top: 2px; }
+  .plan .pp { font-weight: 700; white-space: nowrap; font-size: 15px; }
+  .plan .pp.muted { font-weight: 500; color: var(--hint); font-size: 13px; }
+  .box { background: var(--bg); border-radius: var(--radius); padding: 6px 16px; }
+  .inc { display: flex; gap: 12px; padding: 10px 0; align-items: flex-start; }
+  .inc + .inc { border-top: 1px solid var(--bg2); }
+  .inc .e { font-size: 20px; width: 28px; text-align: center; flex: none; }
+  .inc b { display: block; font-weight: 600; font-size: 15px; }
+  .inc span { font-size: 13px; color: var(--hint); }
+  .steps { counter-reset: s; }
+  .step { display: flex; gap: 12px; padding: 10px 0; }
+  .step + .step { border-top: 1px solid var(--bg2); }
+  .step::before { counter-increment: s; content: counter(s); width: 28px; height: 28px; border-radius: 50%;
+                  background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px;
+                  display: grid; place-items: center; flex: none; }
+  .step b { display: block; font-weight: 600; font-size: 15px; }
+  .step span { font-size: 13px; color: var(--hint); }
+  .family { background: var(--accent-soft); border-radius: var(--radius); padding: 14px 16px; font-size: 14px; margin-top: 10px; }
+  .family b { color: var(--accent); }
+  .hprice { font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .hprice.muted { font-weight: 500; font-size: 13px; color: var(--hint); }
+  .title small { display: block; font-weight: 400; font-size: 13px; color: var(--hint); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== ГЛАВНЫЙ ЭКРАН ===================== -->
+<main id="home">
+  <header>
+    <div class="brand">Чистый<span>.</span></div>
+    <div class="sub">Махачкала · анонимно · 24/7</div>
+    <p class="lead">Выберите, что вас интересует, — свяжем со специалистом в WhatsApp или по телефону.</p>
+  </header>
+
+  <h2>Услуги</h2>
+  <div class="list" id="list"></div>
+
+  <p class="note">Стоимость уточняйте при обращении. Консультации врача-нарколога организуются через лицензированную клинику-партнёра.</p>
+</main>
+
+<!-- ===================== ЭКРАН «РЕАБИЛИТАЦИЯ»: выбор ===================== -->
+<section id="rehab" hidden>
+  <button class="back" data-back="home">‹ Все услуги</button>
+
+  <div class="hero">
+    <div class="icon">🏡</div>
+    <h1>Реабилитация</h1>
+    <p>Программы восстановления при алкогольной и наркотической зависимости. Мужчины и женщины проходят реабилитацию раздельно.</p>
+  </div>
+
+  <h2>Выберите программу</h2>
+  <div class="list" id="rehabTypes"></div>
+
+  <div class="family"><b>Близкий не хочет лечиться?</b> Позвоните — подскажем, как поговорить с ним и уговорить на реабилитацию.</div>
+</section>
+
+<!-- ===================== ЭКРАН ПРОГРАММЫ (мужская / женская) ===================== -->
+<section id="rehabDetail" hidden>
+  <button class="back" data-back="rehab">‹ Реабилитация</button>
+
+  <div class="hero">
+    <div class="icon" id="rdIcon"></div>
+    <h1 id="rdTitle"></h1>
+    <p id="rdText"></p>
+  </div>
+
+  <h2>Что входит</h2>
+  <div class="box" id="includes"></div>
+
+  <h2>Как попасть</h2>
+  <div class="box steps" id="steps"></div>
+
+  <p class="note">Анонимно. Стоимость уточняйте при обращении.</p>
+</section>
+
+<!-- ===================== ЭКРАН «КАПЕЛЬНИЦЫ НА ДОМУ» ===================== -->
+<section id="drips" hidden>
+  <button class="back" data-back="home">‹ Все услуги</button>
+
+  <div class="hero">
+    <div class="icon">💧</div>
+    <h1>Капельницы на дому</h1>
+    <p>Приедем по адресу в Махачкале и ближайших районах. Капельницу ставит медработник клиники-партнёра, анонимно.</p>
+  </div>
+
+  <h2>Выберите капельницу</h2>
+  <div class="list" id="dripList"></div>
+
+  <h2>Как это работает</h2>
+  <div class="box steps" id="dripSteps"></div>
+
+  <div class="family"><b>Скидки обговариваются.</b> Позвоните или напишите — обсудим стоимость.</div>
+
+  <p class="note">Точный состав подбирается по состоянию человека. Время выезда уточняйте при обращении.</p>
+</section>
+
+<!-- ===================== НИЖНЯЯ ПАНЕЛЬ ===================== -->
+<div class="bar">
+  <div class="phone" id="phoneText"></div>
+  <div class="row">
+    <button class="btn wa" data-action="wa">💬 WhatsApp</button>
+    <button class="btn call" data-action="call">📞 Позвонить</button>
+  </div>
+</div>
+
+<script>
+/* ===================== НАСТРОЙКИ (меняйте здесь) ===================== */
+const PHONE = "+79616549377";          // для звонка
+const PHONE_DISPLAY = "+7 961 654-93-77";
+const WHATSAPP = "79616549377";        // только цифры
+
+// page: "rehab" — услуга открывается отдельным экраном
+const SERVICES = [
+  { icon: "🩺", name: "Консультация нарколога",
+    desc: "Консультация врача-нарколога через лицензированную клинику-партнёра. Можно обратиться самому или от имени близкого." },
+  { icon: "💧", name: "Капельницы на дому", page: "drips" },
+  { icon: "🚗", name: "Выезд на дом",
+    desc: "Специалист приедет по адресу в Махачкале и ближайших районах. Время выезда уточняйте при обращении." },
+  { icon: "🏡", name: "Реабилитация", page: "rehab" },
+  { icon: "🤝", name: "Помощь родственникам",
+    desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
+];
+
+// Виды реабилитации (каждый открывается своим экраном)
+const REHAB_TYPES = {
+  men: {
+    icon: "👨", name: "Мужская реабилитация", short: "Отдельный центр для мужчин",
+    text: "Программа для мужчин при алкогольной и наркотической зависимости. Проживание в мужском коллективе, работа с психологом, спорт и трудотерапия.",
+  },
+  women: {
+    icon: "👩", name: "Женская реабилитация", short: "Отдельный центр для женщин",
+    text: "Программа для женщин при алкогольной и наркотической зависимости. Проживание только с женщинами, деликатный подход, работа с психологом.",
+  },
+};
+
+// Капельницы на дому. price: "" — покажет «уточняйте»
+const DRIPS = [
+  { name: "Стандарт", short: "Базовая капельница", desc: "Снимает интоксикацию и обезвоживание, улучшает самочувствие после запоя.", price: "8 000 ₽" },
+  { name: "Усиленная", short: "При тяжёлом состоянии", desc: "Расширенный состав при длительном запое и сильной интоксикации.", price: "12 000 ₽" },
+  { name: "Терапевтическая", short: "Комплексное восстановление", desc: "Комплексный состав для восстановления организма после тяжёлого запоя.", price: "18 000 ₽" },
+  { name: "VIP", short: "Максимальный состав", desc: "Самый полный состав и длительное наблюдение специалиста на дому.", price: "25 000 ₽" },
+  { name: "Индивидуальная", short: "Состав под человека", desc: "Состав подбирается индивидуально под состояние человека.", price: "" },
+  { name: "Стационар", short: "Лечение в клинике", desc: "Капельницы и наблюдение в стационаре клиники-партнёра.", price: "", wa: "стационар" },
+];
+
+const DRIP_STEPS = [
+  ["Звонок или WhatsApp", "Расскажите о состоянии человека и назовите адрес"],
+  ["Выезд специалиста", "Приедем домой в Махачкале и ближайших районах"],
+  ["Капельница", "Специалист подберёт состав и проследит за состоянием"],
+];
+
+const REHAB_INCLUDES = [
+  ["🛏️", "Проживание и питание", "Комфортные комнаты, трёхразовое питание"],
+  ["🧠", "Работа с психологом", "Индивидуальные консультации"],
+  ["👥", "Группы поддержки", "Занятия по программе «12 шагов»"],
+  ["🕐", "Режим дня", "Спорт, труд, отдых — без скуки и соблазнов"],
+  ["👨‍👩‍👦", "Связь с семьёй", "Рассказываем родным о прогрессе"],
+  ["🔒", "Анонимность", "Не ставим на учёт, данные не разглашаются"],
+];
+
+const REHAB_STEPS = [
+  ["Звонок или WhatsApp", "Расскажите о ситуации — это бесплатно и анонимно"],
+  ["Консультация", "Подберём подходящую программу"],
+  ["Приезд в центр", "Поможем с трансфером, если нужно"],
+];
+/* ===================================================================== */
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+function haptic() { try { tg && tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+
+function openExternal(url) {
+  if (tg && tg.openLink) tg.openLink(url);
+  else window.open(url, "_blank");
+}
+
+let currentTopic = null;   // что подставлять в WhatsApp
+
+function openWhatsApp(topic) {
+  const t = topic || currentTopic;
+  const text = t ? `Здравствуйте! Интересует: ${t}.` : "Здравствуйте! Хочу проконсультироваться.";
+  openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+}
+
+function call() {
+  // Внутри Telegram ссылка tel: работает не везде, поэтому открываем
+  // маленькую страницу во внешнем браузере — она сразу запускает звонок.
+  if (tg && tg.platform && tg.platform !== "unknown") {
+    openExternal(new URL("call.html", location.href).href);
+  } else {
+    location.href = "tel:" + PHONE;
+  }
+}
+
+/* ---------- Навигация между экранами ---------- */
+const screens = {
+  home: document.getElementById("home"),
+  rehab: document.getElementById("rehab"),
+  rehabDetail: document.getElementById("rehabDetail"),
+  drips: document.getElementById("drips"),
+};
+const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home" };
+let current = "home";
+
+function show(name) {
+  current = name;
+  Object.entries(screens).forEach(([k, el]) => (el.hidden = k !== name));
+  window.scrollTo(0, 0);
+  if (tg && tg.BackButton) { name === "home" ? tg.BackButton.hide() : tg.BackButton.show(); }
+  if (name === "home") currentTopic = null;
+  if (name === "rehab") currentTopic = "реабилитация";
+  if (name === "rehabDetail") currentTopic = rehabTopic();
+  if (name === "drips") currentTopic = "капельница на дому";
+}
+function goBack() { haptic(); show(parentOf[current] || "home"); }
+if (tg && tg.BackButton) tg.BackButton.onClick(goBack);
+document.querySelectorAll("[data-back]").forEach((b) => (b.onclick = () => { haptic(); show(b.dataset.back); }));
+
+/* ---------- Главный экран ---------- */
+document.getElementById("phoneText").textContent = PHONE_DISPLAY;
+const chevron = '<svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+const list = document.getElementById("list");
+SERVICES.forEach((s) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <button class="head">
+      <div class="icon">${s.icon}</div>
+      <div class="title"></div>
+      ${chevron}
+    </button>
+    ${s.page ? "" : `
+    <div class="body">
+      <p class="desc"></p>
+      <p class="price">Стоимость уточняйте при обращении</p>
+      <div class="row">
+        <button class="btn wa">💬 WhatsApp</button>
+        <button class="btn call">📞 Позвонить</button>
+      </div>
+    </div>`}`;
+  card.querySelector(".title").textContent = s.name;
+  if (s.page) {
+    card.querySelector(".head").onclick = () => { haptic(); show(s.page); };
+  } else {
+    card.querySelector(".desc").textContent = s.desc;
+    card.querySelector(".head").onclick = () => {
+      haptic();
+      const wasOpen = card.classList.contains("open");
+      list.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
+      if (!wasOpen) card.classList.add("open");
+    };
+    card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(s.name); };
+    card.querySelector(".body .call").onclick = () => { haptic(); call(); };
+  }
+  list.appendChild(card);
+});
+
+/* ---------- Экран «Реабилитация» ---------- */
+let rehabType = "men";
+function rehabTopic() { return REHAB_TYPES[rehabType].name.toLowerCase(); }
+
+const typesEl = document.getElementById("rehabTypes");
+Object.entries(REHAB_TYPES).forEach(([key, t]) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<button class="head"><div class="icon">${t.icon}</div>
+    <div class="title"><span class="tn"></span><div class="pd" style="font-weight:400;font-size:13px;color:var(--hint)"></div></div>${chevron}</button>`;
+  card.querySelector(".tn").textContent = t.name;
+  card.querySelector(".pd").textContent = t.short;
+  card.querySelector(".head").onclick = () => { haptic(); openRehab(key); };
+  typesEl.appendChild(card);
+});
+
+function openRehab(key) {
+  rehabType = key;
+  const t = REHAB_TYPES[key];
+  document.getElementById("rdIcon").textContent = t.icon;
+  document.getElementById("rdTitle").textContent = t.name;
+  document.getElementById("rdText").textContent = t.text;
+  show("rehabDetail");
+}
+
+
+document.getElementById("includes").innerHTML = REHAB_INCLUDES
+  .map(([e, t, d]) => `<div class="inc"><div class="e">${e}</div><div><b>${t}</b><span>${d}</span></div></div>`).join("");
+document.getElementById("steps").innerHTML = REHAB_STEPS
+  .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
+
+/* ---------- Экран «Капельницы на дому» ---------- */
+const dripList = document.getElementById("dripList");
+DRIPS.forEach((d) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <button class="head">
+      <div class="icon">💧</div>
+      <div class="title"><span class="tn"></span><small></small></div>
+      <div class="hprice"></div>
+    </button>
+    <div class="body">
+      <p class="desc"></p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn wa">💬 WhatsApp</button>
+        <button class="btn call">📞 Позвонить</button>
+      </div>
+    </div>`;
+  card.querySelector(".tn").textContent = d.name;
+  card.querySelector("small").textContent = d.short;
+  card.querySelector(".desc").textContent = d.desc;
+  const hp = card.querySelector(".hprice");
+  if (d.price) hp.textContent = d.price; else { hp.textContent = "уточняйте"; hp.classList.add("muted"); }
+  card.querySelector(".head").onclick = () => {
+    haptic();
+    const wasOpen = card.classList.contains("open");
+    dripList.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
+    if (!wasOpen) card.classList.add("open");
+  };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(d.wa || `капельница «${d.name}» на дому`); };
+  card.querySelector(".body .call").onclick = () => { haptic(); call(); };
+  dripList.appendChild(card);
+});
+document.getElementById("dripSteps").innerHTML = DRIP_STEPS
+  .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
+
+/* ---------- Нижняя панель ---------- */
+document.querySelector('.bar [data-action="wa"]').onclick = () => { haptic(); openWhatsApp(); };
+document.querySelector('.bar [data-action="call"]').onclick = () => { haptic(); call(); };
+</script>
+</body>
+</html>
