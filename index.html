@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Чистый</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --bg2: var(--tg-theme-secondary-bg-color, #f2f4f6);
+    --text: var(--tg-theme-text-color, #15191e);
+    --hint: var(--tg-theme-hint-color, #7a828c);
+    --accent: #1f6f5c;
+    --wa: #25d366;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg2); color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 16px 16px calc(150px + env(safe-area-inset-bottom));
+  }
+  header { padding: 8px 4px 20px; }
+  .brand { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+  .brand span { color: var(--accent); }
+  .sub { color: var(--hint); font-size: 14px; margin-top: 4px; }
+  .lead { margin-top: 12px; font-size: 15px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .6px; color: var(--hint); margin: 0 4px 8px; font-weight: 600; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--bg); border-radius: var(--radius); overflow: hidden; }
+  .card button.head {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px;
+    background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  }
+  .icon { font-size: 24px; width: 40px; height: 40px; border-radius: 12px; background: var(--bg2);
+          display: grid; place-items: center; flex: none; }
+  .title { font-weight: 600; flex: 1; }
+  .chev { color: var(--hint); flex: none; transition: transform .2s; }
+  .card.open .chev { transform: rotate(90deg); }
+  .body { display: none; padding: 0 16px 16px; }
+  .card.open .body { display: block; }
+  .desc { color: var(--text); opacity: .85; font-size: 15px; }
+  .price { color: var(--hint); font-size: 13px; margin: 10px 0 14px; }
+  .row { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 13px 10px; border-radius: 12px; border: 0; font: 600 15px/1 inherit; font-family: inherit;
+    cursor: pointer; color: #fff;
+  }
+  .btn.wa { background: var(--wa); }
+  .btn.call { background: var(--accent); }
+  .note { color: var(--hint); font-size: 13px; text-align: center; margin: 20px 8px 0; }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  }
+  .bar .phone { text-align: center; color: var(--hint); font-size: 13px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Чистый<span>.</span></div>
+  <div class="sub">Махачкала · анонимно · 24/7</div>
+  <p class="lead">Выберите, что вас интересует, — свяжем со специалистом в WhatsApp или по телефону.</p>
+</header>
+
+<h2>Услуги</h2>
+<div class="list" id="list"></div>
+
+<p class="note">Стоимость уточняйте при обращении. Консультации врача-нарколога организуются через лицензированную клинику-партнёра.</p>
+
+<div class="bar">
+  <div class="phone" id="phoneText"></div>
+  <div class="row">
+    <button class="btn wa" data-action="wa">💬 WhatsApp</button>
+    <button class="btn call" data-action="call">📞 Позвонить</button>
+  </div>
+</div>
+
+<script>
+/* ===================== НАСТРОЙКИ (меняйте здесь) ===================== */
+const PHONE = "+79616549377";          // для звонка
+const PHONE_DISPLAY = "+7 961 654-93-77";
+const WHATSAPP = "79616549377";        // только цифры
+
+const SERVICES = [
+  { icon: "🩺", name: "Консультация нарколога",
+    desc: "Консультация врача-нарколога через лицензированную клинику-партнёра. Можно обратиться самому или от имени близкого." },
+  { icon: "🚗", name: "Выезд на дом",
+    desc: "Специалист приедет по адресу в Махачкале и ближайших районах. Время выезда уточняйте при обращении." },
+  { icon: "🌿", name: "Детокс и восстановление",
+    desc: "Помощь в восстановлении после запоя или употребления: режим, питание, поддержка, наблюдение." },
+  { icon: "🏡", name: "Реабилитация",
+    desc: "Программа реабилитации при алкогольной и наркотической зависимости: проживание, работа с психологом, группы поддержки." },
+  { icon: "🤝", name: "Помощь родственникам",
+    desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
+];
+/* ===================================================================== */
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+function haptic() { try { tg && tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+
+function openExternal(url) {
+  if (tg && tg.openLink) tg.openLink(url);
+  else window.open(url, "_blank");
+}
+
+function openWhatsApp(service) {
+  const text = service
+    ? `Здравствуйте! Интересует: ${service}.`
+    : "Здравствуйте! Хочу проконсультироваться.";
+  openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+}
+
+function call() {
+  // Внутри Telegram ссылка tel: работает не везде, поэтому открываем
+  // маленькую страницу во внешнем браузере — она сразу запускает звонок.
+  if (tg && tg.platform && tg.platform !== "unknown") {
+    openExternal(new URL("call.html", location.href).href);
+  } else {
+    location.href = "tel:" + PHONE;
+  }
+}
+
+document.getElementById("phoneText").textContent = PHONE_DISPLAY;
+
+const list = document.getElementById("list");
+SERVICES.forEach((s) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <button class="head">
+      <div class="icon">${s.icon}</div>
+      <div class="title"></div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="body">
+      <p class="desc"></p>
+      <p class="price">Стоимость уточняйте при обращении</p>
+      <div class="row">
+        <button class="btn wa">💬 WhatsApp</button>
+        <button class="btn call">📞 Позвонить</button>
+      </div>
+    </div>`;
+  card.querySelector(".title").textContent = s.name;
+  card.querySelector(".desc").textContent = s.desc;
+  card.querySelector(".head").onclick = () => {
+    haptic();
+    const wasOpen = card.classList.contains("open");
+    list.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
+    if (!wasOpen) card.classList.add("open");
+  };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(s.name); };
+  card.querySelector(".body .call").onclick = () => { haptic(); call(); };
+  list.appendChild(card);
+});
+
+document.querySelector('.bar [data-action="wa"]').onclick = () => { haptic(); openWhatsApp(); };
+document.querySelector('.bar [data-action="call"]').onclick = () => { haptic(); call(); };
+</script>
+</body>
+</html>
