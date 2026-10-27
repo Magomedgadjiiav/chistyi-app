@@ -96,6 +96,9 @@
   .step span { font-size: 13px; color: var(--hint); }
   .family { background: var(--accent-soft); border-radius: var(--radius); padding: 14px 16px; font-size: 14px; margin-top: 10px; }
   .family b { color: var(--accent); }
+  .hprice { font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .hprice.muted { font-weight: 500; font-size: 13px; color: var(--hint); }
+  .title small { display: block; font-weight: 400; font-size: 13px; color: var(--hint); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -149,6 +152,25 @@
   <p class="note">Анонимно. Стоимость уточняйте при обращении.</p>
 </section>
 
+<!-- ===================== ЭКРАН «КАПЕЛЬНИЦЫ НА ДОМУ» ===================== -->
+<section id="drips" hidden>
+  <button class="back" data-back="home">‹ Все услуги</button>
+
+  <div class="hero">
+    <div class="icon">💧</div>
+    <h1>Капельницы на дому</h1>
+    <p>Приедем по адресу в Махачкале и ближайших районах. Капельницу ставит медработник клиники-партнёра, анонимно.</p>
+  </div>
+
+  <h2>Выберите капельницу</h2>
+  <div class="list" id="dripList"></div>
+
+  <h2>Как это работает</h2>
+  <div class="box steps" id="dripSteps"></div>
+
+  <p class="note">Точный состав подбирается по состоянию человека. Время выезда уточняйте при обращении.</p>
+</section>
+
 <!-- ===================== НИЖНЯЯ ПАНЕЛЬ ===================== -->
 <div class="bar">
   <div class="phone" id="phoneText"></div>
@@ -170,8 +192,7 @@ const SERVICES = [
     desc: "Консультация врача-нарколога через лицензированную клинику-партнёра. Можно обратиться самому или от имени близкого." },
   { icon: "🚗", name: "Выезд на дом",
     desc: "Специалист приедет по адресу в Махачкале и ближайших районах. Время выезда уточняйте при обращении." },
-  { icon: "🌿", name: "Детокс и восстановление",
-    desc: "Помощь в восстановлении после запоя или употребления: режим, питание, поддержка, наблюдение." },
+  { icon: "💧", name: "Капельницы на дому", page: "drips" },
   { icon: "🏡", name: "Реабилитация", page: "rehab" },
   { icon: "🤝", name: "Помощь родственникам",
     desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
@@ -188,6 +209,21 @@ const REHAB_TYPES = {
     text: "Программа для женщин при алкогольной и наркотической зависимости. Проживание только с женщинами, деликатный подход, работа с психологом.",
   },
 };
+
+// Капельницы на дому. price: "" — покажет «уточняйте»
+const DRIPS = [
+  { name: "Капельница от запоя", short: "Базовая", desc: "Снимает интоксикацию и обезвоживание, улучшает самочувствие после запоя.", price: "" },
+  { name: "Усиленная капельница", short: "При тяжёлом состоянии", desc: "Расширенный состав при длительном запое и сильной интоксикации.", price: "" },
+  { name: "Капельница от похмелья", short: "Быстрое облегчение", desc: "Убирает головную боль, тошноту и слабость после употребления алкоголя.", price: "" },
+  { name: "Детокс-капельница", short: "После употребления веществ", desc: "Очищение организма и поддержка после употребления наркотических веществ.", price: "" },
+  { name: "Витаминная капельница", short: "Восстановление сил", desc: "Витамины и поддержка организма после выхода из запоя.", price: "" },
+];
+
+const DRIP_STEPS = [
+  ["Звонок или WhatsApp", "Расскажите о состоянии человека и назовите адрес"],
+  ["Выезд специалиста", "Приедем домой в Махачкале и ближайших районах"],
+  ["Капельница", "Специалист подберёт состав и проследит за состоянием"],
+];
 
 const REHAB_INCLUDES = [
   ["🛏️", "Проживание и питание", "Комфортные комнаты, трёхразовое питание"],
@@ -238,8 +274,9 @@ const screens = {
   home: document.getElementById("home"),
   rehab: document.getElementById("rehab"),
   rehabDetail: document.getElementById("rehabDetail"),
+  drips: document.getElementById("drips"),
 };
-const parentOf = { rehab: "home", rehabDetail: "rehab" };
+const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home" };
 let current = "home";
 
 function show(name) {
@@ -250,6 +287,7 @@ function show(name) {
   if (name === "home") currentTopic = null;
   if (name === "rehab") currentTopic = "реабилитация";
   if (name === "rehabDetail") currentTopic = rehabTopic();
+  if (name === "drips") currentTopic = "капельница на дому";
 }
 function goBack() { haptic(); show(parentOf[current] || "home"); }
 if (tg && tg.BackButton) tg.BackButton.onClick(goBack);
@@ -324,6 +362,42 @@ function openRehab(key) {
 document.getElementById("includes").innerHTML = REHAB_INCLUDES
   .map(([e, t, d]) => `<div class="inc"><div class="e">${e}</div><div><b>${t}</b><span>${d}</span></div></div>`).join("");
 document.getElementById("steps").innerHTML = REHAB_STEPS
+  .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
+
+/* ---------- Экран «Капельницы на дому» ---------- */
+const dripList = document.getElementById("dripList");
+DRIPS.forEach((d) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <button class="head">
+      <div class="icon">💧</div>
+      <div class="title"><span class="tn"></span><small></small></div>
+      <div class="hprice"></div>
+    </button>
+    <div class="body">
+      <p class="desc"></p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn wa">💬 WhatsApp</button>
+        <button class="btn call">📞 Позвонить</button>
+      </div>
+    </div>`;
+  card.querySelector(".tn").textContent = d.name;
+  card.querySelector("small").textContent = d.short;
+  card.querySelector(".desc").textContent = d.desc;
+  const hp = card.querySelector(".hprice");
+  if (d.price) hp.textContent = d.price; else { hp.textContent = "уточняйте"; hp.classList.add("muted"); }
+  card.querySelector(".head").onclick = () => {
+    haptic();
+    const wasOpen = card.classList.contains("open");
+    dripList.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
+    if (!wasOpen) card.classList.add("open");
+  };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(`${d.name.toLowerCase()} на дому`); };
+  card.querySelector(".body .call").onclick = () => { haptic(); call(); };
+  dripList.appendChild(card);
+});
+document.getElementById("dripSteps").innerHTML = DRIP_STEPS
   .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
 
 /* ---------- Нижняя панель ---------- */
