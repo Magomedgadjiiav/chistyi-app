@@ -475,7 +475,7 @@ IV_DRIPS.forEach((d) => {
     ivList.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
     if (!wasOpen) card.classList.add("open");
   };
-  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(`IV-капельница «${d.name}»`); };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Здравствуйте! Заказ с IV-терапии: капельница «${d.name}».`)}`); };
   card.querySelector(".body .call").onclick = () => { haptic(); call(); };
   ivList.appendChild(card);
 });
