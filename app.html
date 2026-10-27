@@ -173,6 +173,24 @@
   <p class="note">Точный состав подбирается по состоянию человека. Время выезда уточняйте при обращении.</p>
 </section>
 
+<!-- ===================== ЭКРАН «IV-ТЕРАПИЯ» ===================== -->
+<section id="iv" hidden>
+  <button class="back" data-back="home">‹ Все услуги</button>
+
+  <div class="hero">
+    <div class="icon">💉</div>
+    <h1>IV-терапия</h1>
+    <p>Капельницы с витаминами, аминокислотами и микроэлементами — для энергии, иммунитета, красоты и восстановления. Состав подбирается индивидуально.</p>
+  </div>
+
+  <h2>Выберите капельницу</h2>
+  <div class="list" id="ivList"></div>
+
+  <div class="family"><b>Не знаете, что выбрать?</b> Напишите или позвоните — подберём капельницу под вашу задачу.</div>
+
+  <p class="note">Стоимость уточняйте при обращении. Перед процедурой специалист уточнит противопоказания.</p>
+</section>
+
 <!-- ===================== НИЖНЯЯ ПАНЕЛЬ ===================== -->
 <div class="bar">
   <div class="phone" id="phoneText"></div>
@@ -193,8 +211,7 @@ const SERVICES = [
   { icon: "🩺", name: "Консультация нарколога",
     desc: "Консультация врача-нарколога через лицензированную клинику-партнёра. Можно обратиться самому или от имени близкого." },
   { icon: "💧", name: "Капельницы на дому", page: "drips" },
-  { icon: "🚗", name: "Выезд на дом",
-    desc: "Специалист приедет по адресу в Махачкале и ближайших районах. Время выезда уточняйте при обращении." },
+  { icon: "💉", name: "IV-терапия", page: "iv" },
   { icon: "🏡", name: "Реабилитация", page: "rehab" },
   { icon: "🤝", name: "Помощь родственникам",
     desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
@@ -220,6 +237,32 @@ const DRIPS = [
   { name: "VIP", short: "Максимальный состав", desc: "Самый полный состав и длительное наблюдение специалиста на дому.", price: "25 000 ₽" },
   { name: "Индивидуальная", short: "Состав под человека", desc: "Состав подбирается индивидуально под состояние человека.", price: "" },
   { name: "Стационар", short: "Лечение в клинике", desc: "Капельницы и наблюдение в стационаре клиники-партнёра.", price: "", wa: "стационар" },
+];
+
+// IV-терапия (без цен)
+const IV_DRIPS = [
+  { name: "АлергоСтоп", short: "При аллергии", desc: "Витамины и микроэлементы, которые помогают уменьшить проявления аллергии." },
+  { name: "Детокс+", short: "Глубокое очищение", desc: "Антиоксиданты, аминокислоты и глутатион для очищения организма и поддержки печени." },
+  { name: "Детокс", short: "Мягкое очищение", desc: "Помогает печени и почкам выводить токсины. Подходит для регулярного очищения." },
+  { name: "Антистресс", short: "Спокойствие и сон", desc: "Магний и витамины группы B для нервной системы: меньше тревоги, лучше сон и настроение." },
+  { name: "Аминокислоты", short: "Энергия и тонус", desc: "Восстановление сил после стресса, диет, нагрузок и переутомления." },
+  { name: "После COVID-19", short: "Восстановление после болезни", desc: "Витамины C и группы B, антиоксиданты — поддержка иммунитета и сил после перенесённой инфекции." },
+  { name: "Экспресс-похудение", short: "Обмен веществ", desc: "Помогает ускорить обмен веществ и вывести лишнюю жидкость." },
+  { name: "Хроническая усталость", short: "Против истощения", desc: "Поддержка нервной системы и энергии: лучше сон, концентрация, меньше усталости." },
+  { name: "Для спортсменов", short: "При нагрузках", desc: "Поддержка мышц, печени и обмена веществ при активных тренировках." },
+  { name: "Поддержка печени", short: "Восстановление печени", desc: "Гепатопротекторы и антиоксиданты после нагрузок, лекарств и неправильного питания." },
+  { name: "Иммунитет+", short: "Защита от вирусов", desc: "Витамины и микроэлементы для укрепления иммунитета и быстрого восстановления после болезней." },
+  { name: "Brain Activ", short: "Память и внимание", desc: "Для ясности ума, памяти и концентрации, особенно при перегрузках и недосыпе." },
+  { name: "После вечеринки", short: "Быстро в форму", desc: "Восстанавливает водно-солевой баланс и самочувствие после бессонной ночи или алкоголя." },
+  { name: "Энергия", short: "Заряд бодрости", desc: "Аминокислоты, витамины и коферменты для бодрости и выносливости." },
+  { name: "Баланс железа", short: "При нехватке железа", desc: "Восполняет железо в организме — меньше усталости и слабости." },
+  { name: "Феринжект", short: "Препарат железа", desc: "Современный препарат железа для быстрого восполнения его запасов." },
+  { name: "Золушка", short: "Красота кожи", desc: "Антиоксиданты и витамины для сияния и ровного тона кожи, поддержка коллагена." },
+  { name: "Здоровые сосуды", short: "Сердце и сосуды", desc: "Поддержка сосудов и микроциркуляции, защита от окислительного стресса." },
+  { name: "Мужская сила", short: "Для мужчин", desc: "Выносливость, микроциркуляция и поддержка гормонального баланса." },
+  { name: "Лаеннек", short: "Омоложение", desc: "Препарат плаценты для кожи, волос и общего восстановления организма." },
+  { name: "Мегамозг", short: "Работа мозга", desc: "Поддержка концентрации и кровоснабжения мозга, устойчивость к стрессу." },
+  { name: "Стимуляция мозга", short: "Ясная голова", desc: "Улучшает питание мозга кислородом, помогает при умственной усталости." },
 ];
 
 const DRIP_STEPS = [
@@ -278,8 +321,9 @@ const screens = {
   rehab: document.getElementById("rehab"),
   rehabDetail: document.getElementById("rehabDetail"),
   drips: document.getElementById("drips"),
+  iv: document.getElementById("iv"),
 };
-const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home" };
+const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home", iv: "home" };
 let current = "home";
 
 function show(name) {
@@ -291,6 +335,7 @@ function show(name) {
   if (name === "rehab") currentTopic = "реабилитация";
   if (name === "rehabDetail") currentTopic = rehabTopic();
   if (name === "drips") currentTopic = "капельница на дому";
+  if (name === "iv") currentTopic = "IV-терапия";
 }
 function goBack() { haptic(); show(parentOf[current] || "home"); }
 if (tg && tg.BackButton) tg.BackButton.onClick(goBack);
@@ -402,6 +447,38 @@ DRIPS.forEach((d) => {
 });
 document.getElementById("dripSteps").innerHTML = DRIP_STEPS
   .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
+
+/* ---------- Экран «IV-терапия» ---------- */
+const ivList = document.getElementById("ivList");
+IV_DRIPS.forEach((d) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <button class="head">
+      <div class="icon">💉</div>
+      <div class="title"><span class="tn"></span><small></small></div>
+      ${chevron}
+    </button>
+    <div class="body">
+      <p class="desc"></p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn wa">💬 WhatsApp</button>
+        <button class="btn call">📞 Позвонить</button>
+      </div>
+    </div>`;
+  card.querySelector(".tn").textContent = d.name;
+  card.querySelector("small").textContent = d.short;
+  card.querySelector(".desc").textContent = d.desc;
+  card.querySelector(".head").onclick = () => {
+    haptic();
+    const wasOpen = card.classList.contains("open");
+    ivList.querySelectorAll(".card.open").forEach((c) => c.classList.remove("open"));
+    if (!wasOpen) card.classList.add("open");
+  };
+  card.querySelector(".body .wa").onclick = () => { haptic(); openWhatsApp(`IV-капельница «${d.name}»`); };
+  card.querySelector(".body .call").onclick = () => { haptic(); call(); };
+  ivList.appendChild(card);
+});
 
 /* ---------- Нижняя панель ---------- */
 document.querySelector('.bar [data-action="wa"]').onclick = () => { haptic(); openWhatsApp(); };
