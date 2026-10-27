@@ -98,6 +98,7 @@
   .family b { color: var(--accent); }
   .hprice { font-weight: 700; font-size: 15px; white-space: nowrap; }
   .hprice.muted { font-weight: 500; font-size: 13px; color: var(--hint); }
+  .icon svg { width: 66%; height: 66%; }
   .title small { display: block; font-weight: 400; font-size: 13px; color: var(--hint); margin-top: 2px; }
 </style>
 </head>
@@ -178,7 +179,7 @@
   <button class="back" data-back="home">‹ Все услуги</button>
 
   <div class="hero">
-    <div class="icon">💉</div>
+    <div class="icon" id="ivHeroIcon"></div>
     <h1>IV-терапия</h1>
     <p>Капельницы с витаминами, аминокислотами и микроэлементами — для энергии, иммунитета, красоты и восстановления. Состав подбирается индивидуально.</p>
   </div>
@@ -202,6 +203,8 @@
 
 <script>
 /* ===================== НАСТРОЙКИ (меняйте здесь) ===================== */
+// Иконка капельницы (пакет с каплей)
+const IV_ICON = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 2.5h10a1 1 0 0 1 1 1V13a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V3.5a1 1 0 0 1 1-1z" fill="#e3f5f0" stroke="#1f6f5c" stroke-width="1.5"/><path d="M6.75 8.5h10.5V13a3.25 3.25 0 0 1-3.25 3.25h-4A3.25 3.25 0 0 1 6.75 13z" fill="#3cc3a8"/><path d="M9.5 5h2.5M9.5 6.6h4" stroke="#1f6f5c" stroke-width="1.1" stroke-linecap="round"/><path d="M12 17v2" stroke="#1f6f5c" stroke-width="1.5" stroke-linecap="round"/><path d="M12 19.6c1.2 1.3 1.2 2.4 0 2.4s-1.2-1.1 0-2.4z" fill="#3cc3a8" stroke="#1f6f5c" stroke-width="1"/></svg>';
 const PHONE = "+79616549377";          // для звонка
 const PHONE_DISPLAY = "+7 961 654-93-77";
 const WHATSAPP = "79616549377";        // только цифры
@@ -211,7 +214,7 @@ const SERVICES = [
   { icon: "🩺", name: "Консультация нарколога",
     desc: "Консультация врача-нарколога через лицензированную клинику-партнёра. Можно обратиться самому или от имени близкого." },
   { icon: "💧", name: "Капельницы на дому", page: "drips" },
-  { icon: "💉", name: "IV-терапия", page: "iv" },
+  { icon: IV_ICON, name: "IV-терапия", page: "iv" },
   { icon: "🏡", name: "Реабилитация", page: "rehab" },
   { icon: "🤝", name: "Помощь родственникам",
     desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
@@ -450,13 +453,14 @@ document.getElementById("dripSteps").innerHTML = DRIP_STEPS
   .map(([t, d]) => `<div class="step"><div><b>${t}</b><span>${d}</span></div></div>`).join("");
 
 /* ---------- Экран «IV-терапия» ---------- */
+document.getElementById("ivHeroIcon").innerHTML = IV_ICON;
 const ivList = document.getElementById("ivList");
 IV_DRIPS.forEach((d) => {
   const card = document.createElement("div");
   card.className = "card";
   card.innerHTML = `
     <button class="head">
-      <div class="icon">💉</div>
+      <div class="icon">${IV_ICON}</div>
       <div class="title"><span class="tn"></span><small></small></div>
       <div class="hprice">${IV_PRICE}</div>
     </button>
