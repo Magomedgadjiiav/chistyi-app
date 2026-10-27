@@ -140,16 +140,13 @@
     <p id="rdText"></p>
   </div>
 
-  <h2>Сроки</h2>
-  <div class="plans" id="plans"></div>
-
   <h2>Что входит</h2>
   <div class="box" id="includes"></div>
 
   <h2>Как попасть</h2>
   <div class="box steps" id="steps"></div>
 
-  <p class="note">Анонимно. Стоимость зависит от срока и условий — уточняйте при обращении.</p>
+  <p class="note">Анонимно. Стоимость уточняйте при обращении.</p>
 </section>
 
 <!-- ===================== НИЖНЯЯ ПАНЕЛЬ ===================== -->
@@ -192,13 +189,6 @@ const REHAB_TYPES = {
   },
 };
 
-// Сроки программ (общие для обеих). price: "" — покажет «уточняйте»
-const REHAB_PLANS = [
-  { name: "1 месяц",   desc: "Детокс и первый этап восстановления", price: "" },
-  { name: "3 месяца",  desc: "Основная программа — рекомендуем",    price: "" },
-  { name: "6 месяцев", desc: "Полный курс с закреплением результата", price: "" },
-];
-
 const REHAB_INCLUDES = [
   ["🛏️", "Проживание и питание", "Комфортные комнаты, трёхразовое питание"],
   ["🧠", "Работа с психологом", "Индивидуальные консультации"],
@@ -210,7 +200,7 @@ const REHAB_INCLUDES = [
 
 const REHAB_STEPS = [
   ["Звонок или WhatsApp", "Расскажите о ситуации — это бесплатно и анонимно"],
-  ["Консультация", "Подберём программу и срок"],
+  ["Консультация", "Подберём подходящую программу"],
   ["Приезд в центр", "Поможем с трансфером, если нужно"],
 ];
 /* ===================================================================== */
@@ -306,9 +296,8 @@ SERVICES.forEach((s) => {
 });
 
 /* ---------- Экран «Реабилитация» ---------- */
-let selectedPlan = 1;   // по умолчанию выбраны 3 месяца
 let rehabType = "men";
-function rehabTopic() { return `${REHAB_TYPES[rehabType].name.toLowerCase()}, срок ${REHAB_PLANS[selectedPlan].name}`; }
+function rehabTopic() { return REHAB_TYPES[rehabType].name.toLowerCase(); }
 
 const typesEl = document.getElementById("rehabTypes");
 Object.entries(REHAB_TYPES).forEach(([key, t]) => {
@@ -328,28 +317,9 @@ function openRehab(key) {
   document.getElementById("rdIcon").textContent = t.icon;
   document.getElementById("rdTitle").textContent = t.name;
   document.getElementById("rdText").textContent = t.text;
-  selectedPlan = 1;
-  renderPlans();
   show("rehabDetail");
 }
 
-const plansEl = document.getElementById("plans");
-function renderPlans() {
-  plansEl.innerHTML = "";
-  REHAB_PLANS.forEach((p, i) => {
-    const b = document.createElement("button");
-    b.className = "plan" + (i === selectedPlan ? " sel" : "");
-    b.innerHTML = `<div class="radio"></div><div class="pt"><div class="pn"></div><div class="pd"></div></div><div class="pp"></div>`;
-    b.querySelector(".pn").textContent = p.name;
-    b.querySelector(".pd").textContent = p.desc;
-    const pp = b.querySelector(".pp");
-    if (p.price) pp.textContent = p.price;
-    else { pp.textContent = "уточняйте"; pp.classList.add("muted"); }
-    b.onclick = () => { haptic(); selectedPlan = i; currentTopic = rehabTopic(); renderPlans(); };
-    plansEl.appendChild(b);
-  });
-}
-renderPlans();
 
 document.getElementById("includes").innerHTML = REHAB_INCLUDES
   .map(([e, t, d]) => `<div class="inc"><div class="e">${e}</div><div><b>${t}</b><span>${d}</span></div></div>`).join("");
