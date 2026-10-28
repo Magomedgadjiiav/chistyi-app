@@ -99,6 +99,13 @@
   .hprice { font-weight: 700; font-size: 15px; white-space: nowrap; }
   .hprice.muted { font-weight: 500; font-size: 13px; color: var(--hint); }
   .icon svg { width: 66%; height: 66%; }
+  .gallery { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; background: var(--bg); }
+  .gtrack { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .gtrack::-webkit-scrollbar { display: none; }
+  .gtrack img { flex: 0 0 100%; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; scroll-snap-align: center; display: block; }
+  .gdots { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
+  .gdots span { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.6); transition: width .2s; }
+  .gdots span.on { width: 16px; background: #fff; }
   .title small { display: block; font-weight: 400; font-size: 13px; color: var(--hint); margin-top: 2px; }
 </style>
 </head>
@@ -137,6 +144,8 @@
 <!-- ===================== ЭКРАН ПРОГРАММЫ (мужская / женская) ===================== -->
 <section id="rehabDetail" hidden>
   <button class="back" data-back="rehab">‹ Реабилитация</button>
+
+  <div class="gallery" id="rdGallery" hidden><div class="gtrack"></div><div class="gdots"></div></div>
 
   <div class="hero">
     <div class="icon" id="rdIcon"></div>
@@ -222,6 +231,7 @@ const SERVICES = [
 const REHAB_TYPES = {
   men: {
     icon: "👨", name: "Мужская реабилитация", short: "Отдельный центр для мужчин",
+    photos: ["img/men-1.webp", "img/men-2.webp", "img/men-3.webp", "img/men-4.webp", "img/men-5.webp", "img/men-6.webp"],
     text: "Программа для мужчин при алкогольной и наркотической зависимости. Проживание в мужском коллективе, работа с психологом, спорт и трудотерапия.",
   },
   women: {
@@ -399,12 +409,26 @@ Object.entries(REHAB_TYPES).forEach(([key, t]) => {
   typesEl.appendChild(card);
 });
 
+function renderGallery(photos) {
+  const g = document.getElementById("rdGallery");
+  const track = g.querySelector(".gtrack"), dots = g.querySelector(".gdots");
+  g.hidden = !photos.length;
+  track.innerHTML = photos.map((src, i) => `<img src="${src}" alt="Фото центра ${i + 1}" loading="${i ? "lazy" : "eager"}">`).join("");
+  dots.innerHTML = photos.length > 1 ? photos.map((_, i) => `<span class="${i ? "" : "on"}"></span>`).join("") : "";
+  track.scrollLeft = 0;
+  track.onscroll = () => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    dots.querySelectorAll("span").forEach((d, k) => d.classList.toggle("on", k === i));
+  };
+}
+
 function openRehab(key) {
   rehabType = key;
   const t = REHAB_TYPES[key];
   document.getElementById("rdIcon").textContent = t.icon;
   document.getElementById("rdTitle").textContent = t.name;
   document.getElementById("rdText").textContent = t.text;
+  renderGallery(t.photos || []);
   show("rehabDetail");
 }
 
