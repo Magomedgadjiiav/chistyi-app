@@ -106,6 +106,17 @@
   .gdots { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
   .gdots span { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.6); transition: width .2s; }
   .gdots span.on { width: 16px; background: #fff; }
+  .stars { display: flex; justify-content: center; gap: 6px; padding: 14px 0 6px; }
+  .stars button { background: none; border: 0; font-size: 36px; line-height: 1; cursor: pointer; color: #d0d5da; padding: 2px; }
+  .stars button.on { color: #f5b301; }
+  .rvbox { background: var(--bg); border-radius: var(--radius); padding: 6px 16px 16px; }
+  .rvbox textarea { width: 100%; min-height: 130px; resize: vertical; border: 1px solid var(--bg2); border-radius: 12px;
+                    background: var(--bg2); color: var(--text); font: inherit; font-size: 15px; padding: 12px; outline: none; }
+  .rvbox textarea:focus { border-color: var(--accent); }
+  .rvbox .btn { width: 100%; margin-top: 12px; padding: 15px 10px; }
+  .rverr { color: #d14343; font-size: 13px; text-align: center; margin-top: 8px; }
+  body.no-bar { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  body.no-bar .bar { display: none; }
   .title small { display: block; font-weight: 400; font-size: 13px; color: var(--hint); margin-top: 2px; }
 </style>
 </head>
@@ -199,6 +210,27 @@
   <p class="note">Перед процедурой специалист уточнит противопоказания.</p>
 </section>
 
+<!-- ===================== ЭКРАН «ОТЗЫВ» ===================== -->
+<section id="review" hidden>
+  <button class="back" data-back="home">‹ Все услуги</button>
+
+  <div class="hero">
+    <div class="icon">⭐</div>
+    <h1>Оставить отзыв</h1>
+    <p>Отзыв увидит только руководитель центра — он нигде не публикуется. Будем благодарны за честное мнение.</p>
+  </div>
+
+  <h2>Ваша оценка</h2>
+  <div class="rvbox">
+    <div class="stars" id="stars"></div>
+    <textarea id="rvText" maxlength="2000" placeholder="Напишите, что понравилось и что можно улучшить"></textarea>
+    <button class="btn call" id="rvSend">✉️ Отправить отзыв</button>
+    <p class="rverr" id="rvErr" hidden>Поставьте оценку или напишите пару слов</p>
+  </div>
+
+  <p class="note">Откроется чат в Telegram с готовым текстом — останется нажать «Отправить».</p>
+</section>
+
 <!-- ===================== НИЖНЯЯ ПАНЕЛЬ ===================== -->
 <div class="bar">
   <div class="phone" id="phoneText"></div>
@@ -215,6 +247,7 @@ const IV_ICON = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d
 const PHONE = "+79616549377";          // для звонка
 const PHONE_DISPLAY = "+7 961 654-93-77";
 const WHATSAPP = "79616549377";        // только цифры
+const REVIEW_TG = "narco_doc_05";      // куда приходят отзывы (ник в Telegram без @)
 
 // page: "rehab" — услуга открывается отдельным экраном
 const SERVICES = [
@@ -225,6 +258,7 @@ const SERVICES = [
   { icon: "🏡", name: "Реабилитация", page: "rehab" },
   { icon: "🤝", name: "Помощь родственникам",
     desc: "Что делать, если близкий не признаёт проблему. Подскажем, как поговорить и как уговорить на лечение." },
+  { icon: "⭐", name: "Оставить отзыв", page: "review" },
 ];
 
 // Виды реабилитации (каждый открывается своим экраном)
@@ -334,8 +368,9 @@ const screens = {
   rehabDetail: document.getElementById("rehabDetail"),
   drips: document.getElementById("drips"),
   iv: document.getElementById("iv"),
+  review: document.getElementById("review"),
 };
-const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home", iv: "home" };
+const parentOf = { rehab: "home", rehabDetail: "rehab", drips: "home", iv: "home", review: "home" };
 let current = "home";
 
 function show(name) {
@@ -348,6 +383,7 @@ function show(name) {
   if (name === "rehabDetail") currentTopic = rehabTopic();
   if (name === "drips") currentTopic = "капельница на дому";
   if (name === "iv") currentTopic = "IV-терапия";
+  document.body.classList.toggle("no-bar", name === "review");
 }
 function goBack() { haptic(); show(parentOf[current] || "home"); }
 if (tg && tg.BackButton) tg.BackButton.onClick(goBack);
@@ -392,6 +428,24 @@ SERVICES.forEach((s) => {
   }
   list.appendChild(card);
 });
+
+/* ---------- Экран «Отзыв» ---------- */
+let rvRating = 0;
+const starsEl = document.getElementById("stars");
+starsEl.innerHTML = [1, 2, 3, 4, 5].map((n) => `<button type="button" aria-label="${n} из 5" data-n="${n}">★</button>`).join("");
+function paintStars() { starsEl.querySelectorAll("button").forEach((b) => b.classList.toggle("on", +b.dataset.n <= rvRating)); }
+starsEl.querySelectorAll("button").forEach((b) => (b.onclick = () => { haptic(); rvRating = +b.dataset.n; paintStars(); document.getElementById("rvErr").hidden = true; }));
+document.getElementById("rvText").oninput = () => (document.getElementById("rvErr").hidden = true);
+document.getElementById("rvSend").onclick = () => {
+  const text = document.getElementById("rvText").value.trim();
+  if (!rvRating && !text) { document.getElementById("rvErr").hidden = false; return; }
+  haptic();
+  let msg = "Отзыв о центре «Чистый»";
+  if (rvRating) msg += `\nОценка: ${"★".repeat(rvRating)}${"☆".repeat(5 - rvRating)} (${rvRating} из 5)`;
+  if (text) msg += `\n\n${text}`;
+  const url = `https://t.me/${REVIEW_TG}?text=${encodeURIComponent(msg)}`;
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
+};
 
 /* ---------- Экран «Реабилитация» ---------- */
 let rehabType = "men";
